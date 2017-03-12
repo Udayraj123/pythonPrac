@@ -1,0 +1,28 @@
+#ML
+bluescore = testbench for 
+
+Most time here >> Model - a target function . set of parameters.
+different for different Tasks.
+It should represent the task correctly.
+
+
+Different learning algos - grad descent.
++adagrad, adam 
+
+SVM dos- has Large Margin Classifier
+they define the marginal line
+
+
+Training Datas=
+Categorical variables = {1...k}
+WildernessArea1 <- one one 
+Class Distribution
+print(dataset.groupby('Soil_Type33').size())  #group by and output the no of each type k
+^To identify class bias in our database	
+>> We removed that Soil_Type15 coz it will shift our confidence about the 
+
+
+sklearn.linear_model.LogisticRegression(
+penalty='l2', # Regularisations - l2 <- andrew ng uses it
+max_iter
+)
