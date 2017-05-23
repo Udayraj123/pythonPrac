@@ -100,3 +100,36 @@ Read SKLEARN Documentations
 Kaggle Links - submit the problems
 try svm models
 ML's learning curve IS Steep, Don't leave it , keep it up.
+
+
+
+*/23 may 
+
+Back Prop => implementation.
+Terms : 
+nodes - 
+input	W1		hidden 		W2 		output
+i1		w1,w2		h1		w5,w6	(net|out)->o1
+i2		w3,w4		h2		w7,w8	(net|out)->o2
+b1					b2
+
+each node has following rep:
+	 (net | out) --h1->
+	 (net | out) --h2->
+	 net = total net input to that node.
+	 	for h1 : net = W'*X + b1
+	 	for o1 : net = W2'*outH + b2
+	 out = sigmoid(net)
+E_total = 1/2 * sum(target - output)^2
+E_total = E_o1 + E_o2 + ...
+
+W2 = [w5;w6;1]
+how is w5 updated ? 
+	-> Its traced Back thru out-o1->net-o1->w5
+	hence del(E_total/w5) = del(E_total/out-o1) * del(out-o1/net-o1) * del(net-o1/w5)
+	E_total = 1/2 * sum(target - output)^2
+		->	del(E_total/out-o1) = (target - output)
+	out-o1 = sigmoid(net-o1)
+		->	del(out-o1/net-o1) = out-o1(1-out-o1t)
+	since	net-o1 = w5 * out-h1 + w6 * out-h2 + b2
+		->	del(net-o1/w5) = out-h1
