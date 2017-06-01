@@ -133,3 +133,11 @@ how is w5 updated ?
 		->	del(out-o1/net-o1) = out-o1(1-out-o1t)
 	since	net-o1 = w5 * out-h1 + w6 * out-h2 + b2
 		->	del(net-o1/w5) = out-h1
+
+
+
+*/31 may
+Einstein summation rules -> Basically the indices should be groupable.
+1. Repeated indices are implicitly summed over.
+2. Each index can appear at most twice in any term.
+3. Each term must contain identical non-repeated indices.
