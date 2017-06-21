@@ -153,7 +153,7 @@ class RnnForPfcModelOne:
 data_train, data_test, data_cv = get_data(200)
 # print(len(data_train), (len(data_test)), (len(data_cv)))
 
-#model = RnnForPfcModelOne()
+model = RnnForPfcModelOne()
 
 #@profile
 def caller():
