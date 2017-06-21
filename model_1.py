@@ -158,7 +158,7 @@ model = RnnForPfcModelOne()
 #@profile
 def caller():
 	for epoch in range(n_epochs):
-		no_of_batches = len(data_train) // batch_size
+		no_of_batches = 2#len(data_train) // batch_size
 		print(no_of_batches)
 		shuffle(data_train)
 		for batch_no in range(no_of_batches):
