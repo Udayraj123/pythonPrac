@@ -189,7 +189,7 @@ def caller():
 		seq_length = []
 		for data in data_cv:
 			seq_length.append(len(data[0]))
-		 	max_length = max(max_length, len(data[0]))
+			max_length = max(max_length, len(data[0]))
 		 	x.append(data[0])
 		 	y.append(data[1])
 		x_padded = np.array([ row + [-1]*(max_length-len(row)) for row in x])
