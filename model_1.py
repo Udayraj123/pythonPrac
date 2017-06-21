@@ -3,6 +3,7 @@ from tensorflow.contrib import rnn
 import pickle
 from random import shuffle
 import numpy as np
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 learning_rate = 0.01
 n_epochs = 10

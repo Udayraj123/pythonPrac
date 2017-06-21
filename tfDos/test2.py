@@ -3,8 +3,9 @@ memory_util.vlog(1)
 import tensorflow as tf
 tf.logging.set_verbosity(tf.logging.ERROR)
 sess = tf.Session()
-a = tf.random_uniform((100,))
-b = tf.random_uniform((100,))
+# OOM
+a = tf.random_uniform((1000,))
+b = tf.random_uniform((1000,))
 c = a + b
 with memory_util.capture_stderr() as stderr:
     sess.run(c.op)
