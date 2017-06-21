@@ -163,7 +163,6 @@ def caller():
 		print(no_of_batches)
 		shuffle(data_train)
 		for batch_no in range(no_of_batches):
-			print("Iteration number, batch number : ", epoch, batch_no)
 			x = []
 			y = []
 			max_length = 0
@@ -177,7 +176,7 @@ def caller():
 			y = np.array(y)
 			model.optimize(x_padded, y, seq_length)
 			accuracy_known = model.cross_validate(x_padded, y, seq_length)
-			print("Training data accuracy : ", accuracy_known)
+			print("Iteration number, batch number : ", epoch, batch_no," Training data accuracy : ", accuracy_known)
 			del accuracy_known
 			del x
 			del y
