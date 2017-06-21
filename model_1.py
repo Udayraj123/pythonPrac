@@ -6,7 +6,7 @@ import numpy as np
 tf.logging.set_verbosity(tf.logging.ERROR)
 
 learning_rate = 0.01
-n_epochs = 10
+n_epochs = 80
 batch_size = 1000
 display_step = 1
 hidden_units = 100
@@ -182,19 +182,26 @@ def caller():
 			del y
 			del seq_length
 			del x_padded
-		
-	x = []
-	y = []
-	max_length = 0
-	seq_length = []
-	for data in data_cv:
-		seq_length.append(len(data[0]))
-		max_length = max(max_length, len(data[0]))
-		x.append(data[0])
-		y.append(data[1])
-	x_padded = np.array([ row + [-1]*(max_length-len(row)) for row in x])
-	y = np.array(y)
-	print("CV data accuracy : ", model.cross_validate(x_padded, y, seq_length))
+	
+
+	no_of_batches = len(data_cv) // batch_size
+	for batch_no in range(no_of_batches):
+		x = []
+		y = []
+		max_length = 0
+		seq_length = []
+		for data in data_cv[batch_no*batch_size: batch_no*batch_size+batch_size]:
+			seq_length.append(len(data[0]))
+			max_length = max(max_length, len(data[0]))
+			x.append(data[0])
+			y.append(data[1])
+		x_padded = np.array([ row + [-1]*(max_length-len(row)) for row in x])
+		y = np.array(y)
+		print("CV data accuracy : ", model.cross_validate(x_padded, y, seq_length))
+		del x
+		del y
+		del seq_length
+		del x_padded
 	# x = []
 	# y = []
 	# max_length = 0
