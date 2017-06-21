@@ -1,102 +1,119 @@
-from Bio import SeqIO
-import requests
-from bs4 import BeautifulSoup
+import os
+import pandas as pd
+import numpy as np
+from collections import Counter
+import matplotlib.pyplot as plt
 import pickle
 
-def get_seq_identifier():
-	seq_identifier = {}
-	data = SeqIO.parse("./data/uniprot_sprot.fasta", "fasta")
-	for seq_record in data :
-		unique_identifier = seq_record.id.split('|')[1]
-		seq_identifier[unique_identifier] = str(seq_record.seq)
-	return seq_identifier
-		
-def get_all_identifiers():
-	seq_identifier = get_seq_identifier()
-	identifiers = list(seq_identifier.keys())
-	return identifiers
-# not found - Q197F7
-def get_family_from_identifiers():
+data = pd.read_table('./../data/uniprot-all.tab', sep = '\t')
+data = data.dropna(axis = 0, how = 'any')
+
+# fig, ax = plt.subplots()
+# data['Protein families'].value_counts().plot(ax=ax, kind='bar')
+# # plt.show()
+# fig.savefig('./../data/family_freq')
+
+data_np = data.as_matrix()
+print("Data loaded and NaN values dropped, shape : ", data_np.shape)
+
+def save_familywise_db(min_no_of_seq = 200):
+	families = []
+	for i in range(data_np.shape[0]):
+		families.append(data_np[i, 3])
+	families_count = Counter(families)
 	
-	# Web-scraping based approach 
-	# items = get_all_identifiers()
-	# items = ["Q197F7", "B2JFE1"]
-	# family = {}
-	# for i in range(len(items)):
-	# 	unique_identifier = items[i]
-	# 	url = "http://pfam.xfam.org/protein/" + unique_identifier
-	# 	page = requests.get(url)
-	# 	soup = BeautifulSoup(page.content, 'html.parser')
-	# 	html = list(soup.children)[2]
-	# 	temp = html.find_all('table', class_='resultTable details', id="imageKey")
-	# 	temp = str(temp)
-	# 	temp = temp.split('<')
-	# 	find = "http://pfam.xfam.org/family"
-	# 	family[unique_identifier] = "not_scraped"
-	# 	for item in temp:
-	# 		if(find in item):
-	# 			item = item.split('>')
-	# 			family_of_item = item[-1]
-	# 			print(unique_identifier, family_of_item)
-	# 			family[unique_identifier] = family_of_item
+	no_of_families = 0
+	families_included = []
+	for k in families_count.keys():
+		if(families_count[k] >= min_no_of_seq):
+			no_of_families += 1
+			families_included.append(k)
+	# store the entire data family-wise
+	# this would help to divide data 
+	# into three parts with stratification
 
-	# for item in items:
-	# 	print(item, " : ", family[item])
+	db_ = {}
+	for fam in families_included:
+		db_[fam] = []
 
-	# output = open('identifier_to_family.txt', 'ab+')
-	# pickle.dump(family, output)
-	# output.close()
+	for i in range(data_np.shape[0]):
+		if(data_np[i, 3] in families_included):
+			temp = [data_np[i, 0], data_np[i, 2], data_np[i, 3]]
+			db_[data_np[i, 3]].append(temp)
 
-	# try to get data from file similar
-	f = open("./data/similar", 'r')
-	temp = str(f.read())
-	temp = temp.split("II. Families")[1].split('---------------')[0].split('\n')
-	temp = [x for x in temp if x]
-	family_tree = {}
-	curr_family= " "
+	file_path = './../data/db_' + str(min_no_of_seq) +'_pickle'
+	if(not os.path.isfile(file_path)):
+		output = open(file_path, 'ab')
+		pickle.dump(db_, output)
+		output.close()
 
-	for i in range(len(temp)):
-		if("family" in temp[i]):
-			curr_family = temp[i]
-			family_tree[curr_family] = []
-		else:
-			family_tree[curr_family].append(temp[i])
-	
-	for k in family_tree.keys():
-		items = family_tree[k]
-		s = ""
-		for item in items:
-			s += item
-		temp = s.replace('<a', '$').replace('a>', '$').split('$')
-		temp = [x for x in temp if "uniprot" in x]
-		temp = [x.split('\'')[1].split('/')[2] for x in temp]
-		family_tree[k] = temp
+	print(no_of_families)
 
-	identifier_to_family_dbase = {}
-	for k in family_tree.keys():
-		for identifier in family_tree[k]:
-			identifier_to_family_dbase[identifier] = k
+def map_creator():
+	amino_acid_map = {}
+	amino_acid_map['A'] = 1
+	amino_acid_map['C'] = 2
+	amino_acid_map['D'] = 3 # aspartic acid
+	amino_acid_map['E'] = 4
+	amino_acid_map['F'] = 5
+	amino_acid_map['G'] = 6
+	amino_acid_map['H'] = 7
+	amino_acid_map['I'] = 8
+	amino_acid_map['K'] = 9
+	amino_acid_map['L'] = 10
+	amino_acid_map['M'] = 11
+	amino_acid_map['N'] = 12
+	amino_acid_map['P'] = 13
+	amino_acid_map['Q'] = 14
+	amino_acid_map['R'] = 15
+	amino_acid_map['S'] = 16
+	amino_acid_map['T'] = 17
+	amino_acid_map['U'] = 18 # Q9Z0J5 - confused with v ?
+	amino_acid_map['V'] = 18
+	amino_acid_map['W'] = 19
+	amino_acid_map['Y'] = 20
+	amino_acid_map['X'] = 21 # Q9MVL6 - undetermined
+	amino_acid_map['B'] = 22 # asparagine/aspartic acid
+	amino_acid_map['Z'] = 23 # glutamine/glutamic acid P01340
 
-	items = get_all_identifiers()
+	families = []
+	for i in range(data_np.shape[0]):
+		families.append(data_np[i, 3])
+	families_count = Counter(families)
+
+	families_map = {}
 	counter = 0
-	i = 0
-
-	identifier_to_family = {}
-	for k in identifier_to_family_dbase.keys():
-		i += 1
-		if(i % 1000 == 0):
-			print("Done for  : ", i)
-			print("Found for : ", counter)
-		if(k in items):
-			identifier_to_family[k] = identifier_to_family_dbase[k]
-			counter += 1
 	
-	output = open('identifier_to_family.txt', 'ab+')
-	pickle.dump(identifier_to_family, output)
-	output.close()
-		
-	print(counter)
+	for k, v in families_count.most_common():
+		counter += 1
+		families_map[k] = counter
+	
+	"""
+	Class-II aminoacyl-tRNA synthetase family 3729
+	3729 1
+	RRF family 764
+	764 87
+	TGF-beta family 213
+	213 510
+	"""
 
+	file_path = './../data/amino_acid_map' +'_pickle'
+	if(not os.path.isfile(file_path)):
+		output = open(file_path, 'ab')
+		pickle.dump(amino_acid_map, output)
+		output.close()
 
-get_family_from_identifiers()
+	file_path = './../data/families_map' +'_pickle'
+	if(not os.path.isfile(file_path)):
+		output = open(file_path, 'ab')
+		pickle.dump(families_map, output)
+		output.close()
 
+	
+
+# Ran these once, so files are saved 
+save_familywise_db()
+save_familywise_db(100)
+save_familywise_db(50)
+
+map_creator()
