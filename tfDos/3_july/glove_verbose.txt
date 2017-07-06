@@ -1,0 +1,432 @@
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data/GloVe$ make
+	mkdir -p build
+	gcc src/glove.c -o build/glove -lm -pthread -Ofast -march=native -funroll-loops -Wno-unused-result
+	src/glove.c: In function ‘save_params’:
+	src/glove.c:224:34: warning: format ‘%ld’ expects argument of type ‘long int’, but argument 3 has type ‘long long int’ [-Wformat=]
+	  if (write_header) fprintf(fout, "%ld %d\n", vocab_size, vector_size);
+	gcc src/shuffle.c -o build/shuffle -lm -pthread -Ofast -march=native -funroll-loops -Wno-unused-result
+	gcc src/cooccur.c -o build/cooccur -lm -pthread -Ofast -march=native -funroll-loops -Wno-unused-result
+	gcc src/vocab_count.c -o build/vocab_count -lm -pthread -Ofast -march=native -funroll-loops -Wno-unused-result
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data/GloVe$ cd ..
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/vocab_count 
+	Simple tool to extract unigram counts
+	Author: Jeffrey Pennington (jpennin@stanford.edu)
+	Usage options:
+		-verbose <int>
+			Set verbosity: 0, 1, or 2 (default)
+		-max-vocab <int>
+			Upper bound on vocabulary size, i.e. keep the <int> most frequent words. The minimum frequency words are randomly sampled so as to obtain an even distribution over the alphabet.
+		-min-count <int>
+			Lower limit such that words which occur fewer than <int> times are discarded.
+	Example usage:
+	./vocab_count -verbose 2 -max-vocab 100000 -min-count 10 < corpus.txt > vocab.txt
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/vocab_count -min-count 1 -verbose 2 < unigram_corpus > vocab_u.txt
+	BUILDING VOCABULARY
+	Processed 1249738 tokens.
+	Counted 22 unique words.
+	Using vocabulary of size 22.
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/vocab_count -min-count 1 -verbose 2 < trigram_corpus > vocab_t.txt
+	BUILDING VOCABULARY
+	Processed 1382554 tokens.
+	Counted 9975 unique words.
+	Using vocabulary of size 9975.
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/cooccur 
+	Tool to calculate word-word cooccurrence statistics
+	Author: Jeffrey Pennington (jpennin@stanford.edu)
+	Usage options:
+		-verbose <int>
+			Set verbosity: 0, 1, or 2 (default)
+		-symmetric <int>
+			If <int> = 0, only use left context; if <int> = 1 (default), use left and right
+		-window-size <int>
+			Number of context words to the left (and to the right, if symmetric = 1); default 15
+		-vocab-file <file>
+			File containing vocabulary (truncated unigram counts, produced by 'vocab_count'); default vocab.txt
+		-memory <float>
+			Soft limit for memory consumption, in GB -- based on simple heuristic, so not extremely accurate; default 4.0
+		-max-product <int>
+			Limit the size of dense cooccurrence array by specifying the max product <int> of the frequency counts of the two cooccurring words.
+			This value overrides that which is automatically produced by '-memory'. Typically only needs adjustment for use with very large corpora.
+		-overflow-length <int>
+			Limit to length <int> the sparse overflow array, which buffers cooccurrence data that does not fit in the dense array, before writing to disk. 
+			This value overrides that which is automatically produced by '-memory'. Typically only needs adjustment for use with very large corpora.
+		-overflow-file <file>
+			Filename, excluding extension, for temporary files; default overflow
+	Example usage:
+	./cooccur -verbose 2 -symmetric 0 -window-size 10 -vocab-file vocab.txt -memory 8.0 -overflow-file tempoverflow < corpus.txt > cooccurrences.bin
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/cooccur -verbose 2 -symmetric 1 -windows-size 12 -vocab-file vocab_u.txt -memory 8.0 <unigram_corpus> coocur_u.bin 
+	COUNTING COOCCURRENCES
+	window size: 15
+	context: symmetric
+	max product: 26461224
+	overflow length: 76056712
+	Reading vocab from file "vocab_u.txt"...loaded 22 words.
+	Building lookup table...table contains 485 elements.
+	Processed 1249737 tokens.
+	Writing cooccurrences to disk...2 files in total.
+	Merging cooccurrence files: processed 484 lines.
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/cooccur -verbose 2 -symmetric 1 -windows-size 12 -vocab-file vocab_t.txt -memory 8.0 <trigram_corpus> coocur_t.bin 
+	COUNTING COOCCURRENCES
+	window size: 15
+	context: symmetric
+	max product: 26461224
+	overflow length: 76056712
+	Reading vocab from file "vocab_t.txt"...loaded 9975 words.
+	Building lookup table...table contains 61501351 elements.
+	Processed 1382553 tokens.
+	Writing cooccurrences to disk.......2 files in total.
+	Merging cooccurrence files: processed 19304040 lines.
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/shuffle 
+	Tool to shuffle entries of word-word cooccurrence files
+	Author: Jeffrey Pennington (jpennin@stanford.edu)
+
+	Usage options:
+		-verbose <int>
+			Set verbosity: 0, 1, or 2 (default)
+		-memory <float>
+			Soft limit for memory consumption, in GB; default 4.0
+		-array-size <int>
+			Limit to length <int> the buffer which stores chunks of data to shuffle before writing to disk. 
+			This value overrides that which is automatically produced by '-memory'.
+		-temp-file <file>
+			Filename, excluding extension, for temporary files; default temp_shuffle
+
+	Example usage: (assuming 'cooccurrence.bin' has been produced by 'coccur')
+	./shuffle -verbose 2 -memory 8.0 < cooccurrence.bin > cooccurrence.shuf.bin
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/shuffle -verbose 2 -memory 8.0 <coocur_u.bin > coocur_shuffled_u.bin
+	SHUFFLING COOCCURRENCES
+	array size: 510027366
+	Shuffling by chunks: processed 484 lines.
+	Wrote 1 temporary file(s).
+	Merging temp files: processed 484 lines.
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/shuffle -verbose 2 -memory 8.0 <coocur_t.bin > coocur_shuffled_t.bin
+	SHUFFLING COOCCURRENCES
+	array size: 510027366
+	Shuffling by chunks: processed 19304040 lines.
+	Wrote 1 temporary file(s).
+	Merging temp files: processed 19304040 lines.
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/glove 
+	GloVe: Global Vectors for Word Representation, v0.2
+	Author: Jeffrey Pennington (jpennin@stanford.edu)
+
+	Usage options:
+		-verbose <int>
+			Set verbosity: 0, 1, or 2 (default)
+		-write-header <int>
+			If 1, write vocab_size/vector_size as first line. Do nothing if 0 (default).
+		-vector-size <int>
+			Dimension of word vector representations (excluding bias term); default 50
+		-threads <int>
+			Number of threads; default 8
+		-iter <int>
+			Number of training iterations; default 25
+		-eta <float>
+			Initial learning rate; default 0.05
+		-alpha <float>
+			Parameter in exponent of weighting function; default 0.75
+		-x-max <float>
+			Parameter specifying cutoff in weighting function; default 100.0
+		-binary <int>
+			Save output in binary format (0: text, 1: binary, 2: both); default 0
+		-model <int>
+			Model for word vector output (for text output only); default 2
+			   0: output all data, for both word and context word vectors, including bias terms
+			   1: output word vectors, excluding bias terms
+			   2: output word vectors + context word vectors, excluding bias terms
+		-input-file <file>
+			Binary input file of shuffled cooccurrence data (produced by 'cooccur' and 'shuffle'); default cooccurrence.shuf.bin
+		-vocab-file <file>
+			File containing vocabulary (truncated unigram counts, produced by 'vocab_count'); default vocab.txt
+		-save-file <file>
+			Filename, excluding extension, for word vector output; default vectors
+		-gradsq-file <file>
+			Filename, excluding extension, for squared gradient output; default gradsq
+		-save-gradsq <int>
+			Save accumulated squared gradients; default 0 (off); ignored if gradsq-file is specified
+		-checkpoint-every <int>
+			Checkpoint a  model every <int> iterations; default 0 (off)
+
+	Example usage:
+	./glove -input-file cooccurrence.shuf.bin -vocab-file vocab.txt -save-file vectors -gradsq-file gradsq -verbose 2 -vector-size 100 -threads 16 -alpha 0.75 -x-max 100.0 -eta 0.05 -binary 2 -model 2
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/glove -input-file coocur_shuffled_u.bin -vocab-file vocab_u.txt -save-file vectors_u -verbose 2 -vector-size 100 -alpha 0.75 -x-max 100000 -binary 2 
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/glove -input-file coocur_shuffled_u.bin -vocab-file vocab_u.txt -save-file vectors_u -verbose 2 -vector-size 100 -alpha 0.75 -x-max 100000 -binary 2 
+	TRAINING MODEL
+	Read 484 lines.
+	Initializing parameters...done.
+	vector size: 100
+	vocab size: 22
+	x_max: 100000.000000
+	alpha: 0.750000
+	06/30/17 - 12:23.21AM, iter: 001, cost: 7.337558
+	06/30/17 - 12:23.21AM, iter: 002, cost: 2.429268
+	06/30/17 - 12:23.21AM, iter: 003, cost: 0.894757
+	06/30/17 - 12:23.21AM, iter: 004, cost: 0.353563
+	06/30/17 - 12:23.21AM, iter: 005, cost: 0.157553
+	06/30/17 - 12:23.21AM, iter: 006, cost: 0.085227
+	06/30/17 - 12:23.21AM, iter: 007, cost: 0.054971
+	06/30/17 - 12:23.21AM, iter: 008, cost: 0.039632
+	06/30/17 - 12:23.21AM, iter: 009, cost: 0.030633
+	06/30/17 - 12:23.21AM, iter: 010, cost: 0.024964
+	06/30/17 - 12:23.21AM, iter: 011, cost: 0.021132
+	06/30/17 - 12:23.21AM, iter: 012, cost: 0.018523
+	06/30/17 - 12:23.21AM, iter: 013, cost: 0.016562
+	06/30/17 - 12:23.21AM, iter: 014, cost: 0.015010
+	06/30/17 - 12:23.21AM, iter: 015, cost: 0.013805
+	06/30/17 - 12:23.21AM, iter: 016, cost: 0.012775
+	06/30/17 - 12:23.21AM, iter: 017, cost: 0.011865
+	06/30/17 - 12:23.21AM, iter: 018, cost: 0.011059
+	06/30/17 - 12:23.21AM, iter: 019, cost: 0.010235
+	06/30/17 - 12:23.21AM, iter: 020, cost: 0.009492
+	06/30/17 - 12:23.21AM, iter: 021, cost: 0.008836
+	06/30/17 - 12:23.21AM, iter: 022, cost: 0.008151
+	06/30/17 - 12:23.21AM, iter: 023, cost: 0.007477
+	06/30/17 - 12:23.21AM, iter: 024, cost: 0.006813
+	06/30/17 - 12:23.21AM, iter: 025, cost: 0.006216
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/glove -input-file coocur_shuffled_u.bin -vocab-file vocab_u.txt -save-file vectors_u_1 -verbose 2 -vector-size 100 -alpha 0.75 -x-max 1000000 -binary 2 
+	TRAINING MODEL
+	Read 484 lines.
+	Initializing parameters...done.
+	vector size: 100
+	vocab size: 22
+	x_max: 1000000.000000
+	alpha: 0.750000
+	06/30/17 - 12:23.37AM, iter: 001, cost: 1.996267
+	06/30/17 - 12:23.37AM, iter: 002, cost: 1.587870
+	06/30/17 - 12:23.37AM, iter: 003, cost: 1.268956
+	06/30/17 - 12:23.37AM, iter: 004, cost: 1.017679
+	06/30/17 - 12:23.37AM, iter: 005, cost: 0.818900
+	06/30/17 - 12:23.37AM, iter: 006, cost: 0.661114
+	06/30/17 - 12:23.37AM, iter: 007, cost: 0.535324
+	06/30/17 - 12:23.37AM, iter: 008, cost: 0.434663
+	06/30/17 - 12:23.37AM, iter: 009, cost: 0.354325
+	06/30/17 - 12:23.37AM, iter: 010, cost: 0.289732
+	06/30/17 - 12:23.37AM, iter: 011, cost: 0.237726
+	06/30/17 - 12:23.37AM, iter: 012, cost: 0.195829
+	06/30/17 - 12:23.37AM, iter: 013, cost: 0.161968
+	06/30/17 - 12:23.37AM, iter: 014, cost: 0.134519
+	06/30/17 - 12:23.37AM, iter: 015, cost: 0.112247
+	06/30/17 - 12:23.37AM, iter: 016, cost: 0.094120
+	06/30/17 - 12:23.37AM, iter: 017, cost: 0.079336
+	06/30/17 - 12:23.37AM, iter: 018, cost: 0.067284
+	06/30/17 - 12:23.37AM, iter: 019, cost: 0.057400
+	06/30/17 - 12:23.37AM, iter: 020, cost: 0.049302
+	06/30/17 - 12:23.37AM, iter: 021, cost: 0.042621
+	06/30/17 - 12:23.37AM, iter: 022, cost: 0.037111
+	06/30/17 - 12:23.37AM, iter: 023, cost: 0.032533
+	06/30/17 - 12:23.37AM, iter: 024, cost: 0.028721
+	06/30/17 - 12:23.37AM, iter: 025, cost: 0.025690
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/glove -input-file coocur_shuffled_u.bin -vocab-file vocab_u.txt -save-file vectors_u_2 -verbose 2 -vector-size 100 -alpha 0.75 -x-max 100 -binary 2 
+	TRAINING MODEL
+	Read 484 lines.
+	Initializing parameters...done.
+	vector size: 100
+	vocab size: 22
+	x_max: 100.000000
+	alpha: 0.750000
+	06/30/17 - 12:23.52AM, iter: 001, cost: 12.723660
+	06/30/17 - 12:23.52AM, iter: 002, cost: 0.361580
+	06/30/17 - 12:23.52AM, iter: 003, cost: 0.038717
+	06/30/17 - 12:23.52AM, iter: 004, cost: 0.037620
+	06/30/17 - 12:23.52AM, iter: 005, cost: 0.036451
+	06/30/17 - 12:23.52AM, iter: 006, cost: 0.036061
+	06/30/17 - 12:23.52AM, iter: 007, cost: 0.035571
+	06/30/17 - 12:23.52AM, iter: 008, cost: 0.034808
+	06/30/17 - 12:23.52AM, iter: 009, cost: 0.033838
+	06/30/17 - 12:23.52AM, iter: 010, cost: 0.033698
+	06/30/17 - 12:23.52AM, iter: 011, cost: 0.032376
+	06/30/17 - 12:23.52AM, iter: 012, cost: 0.032120
+	06/30/17 - 12:23.52AM, iter: 013, cost: 0.030874
+	06/30/17 - 12:23.52AM, iter: 014, cost: 0.030295
+	06/30/17 - 12:23.52AM, iter: 015, cost: 0.029047
+	06/30/17 - 12:23.52AM, iter: 016, cost: 0.028160
+	06/30/17 - 12:23.52AM, iter: 017, cost: 0.027098
+	06/30/17 - 12:23.52AM, iter: 018, cost: 0.025944
+	06/30/17 - 12:23.52AM, iter: 019, cost: 0.024654
+	06/30/17 - 12:23.52AM, iter: 020, cost: 0.023320
+	06/30/17 - 12:23.52AM, iter: 021, cost: 0.021937
+	06/30/17 - 12:23.52AM, iter: 022, cost: 0.020678
+	06/30/17 - 12:23.52AM, iter: 023, cost: 0.019256
+	06/30/17 - 12:23.52AM, iter: 024, cost: 0.017725
+	06/30/17 - 12:23.52AM, iter: 025, cost: 0.016860
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/glove -input-file coocur_shuffled_.bin -vocab-file vocab_u.txt -save-file vectors_t -verbose 2 -vector-size 100 -alpha 0.75 -x-max 1000 -binary 2 
+coocur_shuffled_t.bin  coocur_shuffled_u.bin  
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/glove -input-file coocur_shuffled_t.bin -vocab-file vocab_t.txt -save-file vectors_t -verbose 2 -vector-size 100 -alpha 0.75 -x-max 1000 -binary 2 
+	TRAINING MODEL
+	Read 19304040 lines.
+	Initializing parameters...done.
+	vector size: 100
+	vocab size: 9975
+	x_max: 1000.000000
+	alpha: 0.750000
+	06/30/17 - 12:25.15AM, iter: 001, cost: 0.001581
+	06/30/17 - 12:25.30AM, iter: 002, cost: 0.001299
+	06/30/17 - 12:25.46AM, iter: 003, cost: 0.001196
+	06/30/17 - 12:26.01AM, iter: 004, cost: 0.001143
+	06/30/17 - 12:26.16AM, iter: 005, cost: 0.001110
+	06/30/17 - 12:26.32AM, iter: 006, cost: 0.001088
+	06/30/17 - 12:26.47AM, iter: 007, cost: 0.001071
+	06/30/17 - 12:27.02AM, iter: 008, cost: 0.001059
+	06/30/17 - 12:27.18AM, iter: 009, cost: 0.001048
+	06/30/17 - 12:27.33AM, iter: 010, cost: 0.001038
+	06/30/17 - 12:27.48AM, iter: 011, cost: 0.001029
+	06/30/17 - 12:28.03AM, iter: 012, cost: 0.001023
+	06/30/17 - 12:28.19AM, iter: 013, cost: 0.001017
+	06/30/17 - 12:28.34AM, iter: 014, cost: 0.001011
+	06/30/17 - 12:28.49AM, iter: 015, cost: 0.001006
+	06/30/17 - 12:29.05AM, iter: 016, cost: 0.001001
+	06/30/17 - 12:29.20AM, iter: 017, cost: 0.000996
+	06/30/17 - 12:29.35AM, iter: 018, cost: 0.000992
+	06/30/17 - 12:29.51AM, iter: 019, cost: 0.000988
+	06/30/17 - 12:30.12AM, iter: 020, cost: 0.000986
+	06/30/17 - 12:30.27AM, iter: 021, cost: 0.000984
+	06/30/17 - 12:30.42AM, iter: 022, cost: 0.000982
+	06/30/17 - 12:30.57AM, iter: 023, cost: 0.000980
+	06/30/17 - 12:31.11AM, iter: 024, cost: 0.000979
+	06/30/17 - 12:31.26AM, iter: 025, cost: 0.000977
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/glove -input-file coocur_shuffled_t.bin -vocab-file vocab_t.txt -save-file vectors_t_1 -verbose 2 -vector-size 100 -alpha 0.75 -x-max 100 -binary 2 
+	TRAINING MODEL
+	Read 19304040 lines.
+	Initializing parameters...done.
+	vector size: 100
+	vocab size: 9975
+	x_max: 100.000000
+	alpha: 0.750000
+	06/30/17 - 12:32.34AM, iter: 001, cost: 0.006996
+	06/30/17 - 12:32.49AM, iter: 002, cost: 0.005918
+	06/30/17 - 12:33.04AM, iter: 003, cost: 0.005745
+	06/30/17 - 12:33.19AM, iter: 004, cost: 0.005632
+	06/30/17 - 12:33.35AM, iter: 005, cost: 0.005596
+	06/30/17 - 12:33.50AM, iter: 006, cost: 0.005499
+	06/30/17 - 12:34.05AM, iter: 007, cost: 0.005465
+	06/30/17 - 12:34.21AM, iter: 008, cost: 0.005418
+	06/30/17 - 12:34.36AM, iter: 009, cost: 0.005386
+	06/30/17 - 12:34.51AM, iter: 010, cost: 0.005365
+	06/30/17 - 12:35.07AM, iter: 011, cost: 0.005353
+	06/30/17 - 12:35.22AM, iter: 012, cost: 0.005345
+	06/30/17 - 12:35.37AM, iter: 013, cost: 0.005339
+	06/30/17 - 12:35.53AM, iter: 014, cost: 0.005335
+	06/30/17 - 12:36.08AM, iter: 015, cost: 0.005331
+	06/30/17 - 12:36.23AM, iter: 016, cost: 0.005328
+	06/30/17 - 12:36.39AM, iter: 017, cost: 0.005326
+	06/30/17 - 12:36.54AM, iter: 018, cost: 0.005323
+	06/30/17 - 12:37.09AM, iter: 019, cost: 0.005321
+	06/30/17 - 12:37.29AM, iter: 020, cost: 0.005319
+	06/30/17 - 12:37.45AM, iter: 021, cost: 0.005317
+	06/30/17 - 12:38.00AM, iter: 022, cost: 0.005315
+	06/30/17 - 12:38.15AM, iter: 023, cost: 0.005313
+	06/30/17 - 12:38.31AM, iter: 024, cost: 0.005310
+	06/30/17 - 12:38.46AM, iter: 025, cost: 0.005307
+
+
+
+
+sud@sud-HP-Pavilion-Notebook:~/PycharmProjects/Machine-Learning-Tensorflow/LSTMforPSSP/data$ GloVe/build/glove -input-file coocur_shuffled_t.bin -vocab-file vocab_t.txt -save-file vectors_t_2 -verbose 2 -vector-size 100 -alpha 0.75 -x-max 20 -binary 2 
+	TRAINING MODEL
+	Read 19304040 lines.
+	Initializing parameters...done.
+	vector size: 100
+	vocab size: 9975
+	x_max: 20.000000
+	alpha: 0.750000
+	06/30/17 - 12:39.19AM, iter: 001, cost: 0.020516
+	06/30/17 - 12:39.34AM, iter: 002, cost: 0.018775
+	06/30/17 - 12:39.49AM, iter: 003, cost: 0.018391
+	06/30/17 - 12:40.05AM, iter: 004, cost: 0.018083
+	06/30/17 - 12:40.20AM, iter: 005, cost: 0.017959
+	06/30/17 - 12:40.35AM, iter: 006, cost: 0.017890
+	06/30/17 - 12:40.51AM, iter: 007, cost: 0.017865
+	06/30/17 - 12:41.06AM, iter: 008, cost: 0.017839
+	06/30/17 - 12:41.21AM, iter: 009, cost: 0.017807
+	06/30/17 - 12:41.37AM, iter: 010, cost: 0.017771
+	06/30/17 - 12:41.52AM, iter: 011, cost: 0.017734
+	06/30/17 - 12:42.07AM, iter: 012, cost: 0.017687
+	06/30/17 - 12:42.23AM, iter: 013, cost: 0.017620
+	06/30/17 - 12:42.38AM, iter: 014, cost: 0.017533
+	06/30/17 - 12:42.53AM, iter: 015, cost: 0.017418
+	06/30/17 - 12:43.09AM, iter: 016, cost: 0.017266
+	06/30/17 - 12:43.24AM, iter: 017, cost: 0.017076
+	06/30/17 - 12:43.40AM, iter: 018, cost: 0.016854
+	06/30/17 - 12:43.55AM, iter: 019, cost: 0.016619
+	06/30/17 - 12:44.10AM, iter: 020, cost: 0.016390
+	06/30/17 - 12:44.26AM, iter: 021, cost: 0.016181
+	06/30/17 - 12:44.41AM, iter: 022, cost: 0.015997
+	06/30/17 - 12:44.57AM, iter: 023, cost: 0.015839
+	06/30/17 - 12:45.12AM, iter: 024, cost: 0.015703
+	06/30/17 - 12:45.27AM, iter: 025, cost: 0.015584
+
