@@ -81,10 +81,6 @@ class TwoLayerModel():
             tf.summary.scalar("accuracy", self.accuracy)
             # Merge all summaries into a single op - to pass into sess.run
             self.merged_summary_op = tf.summary.merge_all()
-
-
-
-        
     
     def train(self,sess,x,y,index):
         _,c,acc,summary = sess.run([self.train_step,self.cost,self.accuracy,self.merged_summary_op],feed_dict={self.x_:x,self.y_:y})
